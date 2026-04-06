@@ -1,5 +1,9 @@
 import requests
+import csv
+import os
 from datetime import datetime
+
+CSV_FILE = "iss_log.csv"
 
 def get_iss_position():
     url = "http://api.open-notify.org/iss-now.json"
@@ -15,7 +19,7 @@ def get_iss_position():
         print("  ERROR: No internet connection.")
         return None
     except requests.exceptions.Timeout:
-        print("  ERROR: Request timed out. The API may be slow.")
+        print("  ERROR: Request timed out.")
         return None
     except requests.exceptions.HTTPError as e:
         print(f"  ERROR: API returned an error: {e}")
@@ -38,8 +42,16 @@ def get_astronaut_count():
         print(f"  ERROR: API returned an error: {e}")
         return None, []
 
-if __name__ == "__main__":
+def save_to_csv(lat, lon, timestamp, astronaut_count):
+    file_exists = os.path.isfile(CSV_FILE)
+    with open(CSV_FILE, mode="a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["timestamp", "latitude", "longitude", "people_in_space"])
+        writer.writerow([timestamp.strftime("%Y-%m-%d %H:%M:%S"), lat, lon, astronaut_count])
+    print(f"  Logged to {CSV_FILE}")
 
+if __name__ == "__main__":
     print("=" * 40)
     print("  ISS Current Position")
     print("=" * 40)
@@ -64,3 +76,6 @@ if __name__ == "__main__":
         print("  Could not retrieve astronaut data.")
 
     print("=" * 40)
+
+    if result and count is not None:
+        save_to_csv(lat, lon, timestamp, count)
