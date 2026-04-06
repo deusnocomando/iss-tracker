@@ -1,9 +1,11 @@
 import requests
 import csv
 import os
+import time
 from datetime import datetime
 
 CSV_FILE = "iss_log.csv"
+INTERVAL = 60  # seconds between each update
 
 def get_iss_position():
     url = "http://api.open-notify.org/iss-now.json"
@@ -51,9 +53,9 @@ def save_to_csv(lat, lon, timestamp, astronaut_count):
         writer.writerow([timestamp.strftime("%Y-%m-%d %H:%M:%S"), lat, lon, astronaut_count])
     print(f"  Logged to {CSV_FILE}")
 
-if __name__ == "__main__":
+def run_once():
     print("=" * 40)
-    print("  ISS Current Position")
+    print(f"  ISS Tracker — {datetime.now().strftime('%H:%M:%S')}")
     print("=" * 40)
 
     result = get_iss_position()
@@ -79,3 +81,13 @@ if __name__ == "__main__":
 
     if result and count is not None:
         save_to_csv(lat, lon, timestamp, count)
+
+if __name__ == "__main__":
+    print("ISS Tracker started. Press Ctrl+C to stop.\n")
+    try:
+        while True:
+            run_once()
+            print(f"\n  Next update in {INTERVAL} seconds...\n")
+            time.sleep(INTERVAL)
+    except KeyboardInterrupt:
+        print("\nTracker stopped.")
